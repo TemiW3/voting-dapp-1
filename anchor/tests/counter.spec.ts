@@ -66,5 +66,15 @@ describe('Voting', () => {
     expect(adiddasCandidate.candidateVotes.toNumber()).toEqual(0)
   })
 
-  it('Vote', async () => {})
+  it('Vote', async () => {
+    await votingProgram.methods.vote('Nike Air Max', new anchor.BN(1)).rpc()
+
+    const [nikeAddress] = PublicKey.findProgramAddressSync(
+      [new anchor.BN(1).toArrayLike(Buffer, 'le', 8), Buffer.from('Nike Air Max')],
+      votingAddress,
+    )
+    const nikeCandidate = await votingProgram.account.candidate.fetch(nikeAddress)
+    console.log('Nike Candidate after vote:', nikeCandidate)
+    expect(nikeCandidate.candidateVotes.toNumber()).toEqual(1)
+  })
 })
