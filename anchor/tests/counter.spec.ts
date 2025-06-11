@@ -7,19 +7,20 @@ import { before } from 'node:test'
 
 const IDL = require('../target/idl/voting.json')
 
-const votingAddress = new PublicKey('FqzkXZdwYjurnUKetJCAvaUw5WAqbwzU6gZEwydeEfqS')
-
-let provider
-let context
-let votingProgram
-
-beforeAll(async () => {
-  context = await startAnchor('', [{ name: 'voting', programId: votingAddress }], [])
-  provider = new BankrunProvider(context)
-  votingProgram = new Program<Voting>(IDL, provider)
-})
+const votingAddress = new PublicKey('DJpAe4eaU4LhfdXFh5dVitTGneKMfXaUZXt3fF7ASjSJ')
 
 describe('Voting', () => {
+  let provider
+  let context
+  anchor.setProvider(anchor.AnchorProvider.env())
+  let votingProgram = anchor.workspace.Voting as Program<Voting>
+
+  beforeAll(async () => {
+    // context = await startAnchor('', [{ name: 'voting', programId: votingAddress }], [])
+    // provider = new BankrunProvider(context)
+    // votingProgram = new Program<Voting>(IDL, provider)
+  })
+
   it('Initialize Poll', async () => {
     await votingProgram.methods
       .initializePoll(
@@ -45,11 +46,11 @@ describe('Voting', () => {
   })
 
   it('Initialize Candidate', async () => {
-    await votingProgram.methods.initializeCandidate('Nike Air Max', new anchor.BN(1)).rpc()
-    await votingProgram.methods.initializeCandidate('Adiddas', new anchor.BN(1)).rpc()
+    await votingProgram.methods.initializeCandidate('Nike', new anchor.BN(1)).rpc()
+    await votingProgram.methods.initializeCandidate('Adidas', new anchor.BN(1)).rpc()
 
     const [nikeAddress] = PublicKey.findProgramAddressSync(
-      [new anchor.BN(1).toArrayLike(Buffer, 'le', 8), Buffer.from('Nike Air Max')],
+      [new anchor.BN(1).toArrayLike(Buffer, 'le', 8), Buffer.from('Nike')],
       votingAddress,
     )
 
@@ -58,7 +59,7 @@ describe('Voting', () => {
     expect(nikeCandidate.candidateVotes.toNumber()).toEqual(0)
 
     const [adiddasAddress] = PublicKey.findProgramAddressSync(
-      [new anchor.BN(1).toArrayLike(Buffer, 'le', 8), Buffer.from('Adiddas')],
+      [new anchor.BN(1).toArrayLike(Buffer, 'le', 8), Buffer.from('Adidas')],
       votingAddress,
     )
     const adiddasCandidate = await votingProgram.account.candidate.fetch(adiddasAddress)
@@ -67,10 +68,10 @@ describe('Voting', () => {
   })
 
   it('Vote', async () => {
-    await votingProgram.methods.vote('Nike Air Max', new anchor.BN(1)).rpc()
+    await votingProgram.methods.vote('Nike', new anchor.BN(1)).rpc()
 
     const [nikeAddress] = PublicKey.findProgramAddressSync(
-      [new anchor.BN(1).toArrayLike(Buffer, 'le', 8), Buffer.from('Nike Air Max')],
+      [new anchor.BN(1).toArrayLike(Buffer, 'le', 8), Buffer.from('Nike')],
       votingAddress,
     )
     const nikeCandidate = await votingProgram.account.candidate.fetch(nikeAddress)
